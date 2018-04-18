@@ -1,9 +1,13 @@
 package android.weathertest.com.weathertest.util;
 
 import android.text.TextUtils;
+import android.util.Log;
 import android.weathertest.com.weathertest.db.City;
 import android.weathertest.com.weathertest.db.County;
 import android.weathertest.com.weathertest.db.Province;
+import android.weathertest.com.weathertest.gson.Weather;
+
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,9 +18,13 @@ import org.json.JSONObject;
  */
 
 public class Utility {
+    public static final String TAG = "ChooseAreaFragment";
+
     public static boolean handleProvinceResponse(String response) {
+        Log.d(TAG, "response==: " + response);
         if (!TextUtils.isEmpty(response)) {
             try {
+                Log.d(TAG, "handleProvinceResponse: ");
                 JSONArray allProvince = new JSONArray(response);
                 for (int i = 0; i < allProvince.length(); i++) {
                     JSONObject provinceObject = allProvince.getJSONObject(i);
@@ -34,7 +42,7 @@ public class Utility {
         return false;
     }
 
-    public static boolean handleCityResponse(String response ,int provinceId) {
+    public static boolean handleCityResponse(String response, int provinceId) {
         if (!TextUtils.isEmpty(response)) {
             try {
                 JSONArray allCity = new JSONArray(response);
@@ -42,7 +50,7 @@ public class Utility {
                     JSONObject cityObject = allCity.getJSONObject(i);
                     City city = new City();
                     city.setCityName(cityObject.getString("name"));
-                    city.setCityCde(cityObject.getInt("id"));
+                    city.setCityCode(cityObject.getInt("id"));
                     city.setProvinceId(provinceId);
                     //DateSupport中的方法
                     city.save();
@@ -56,7 +64,7 @@ public class Utility {
         return false;
     }
 
-    public static boolean handleCountyResponse(String response ,int cityId) {
+    public static boolean handleCountyResponse(String response, int cityId) {
         if (!TextUtils.isEmpty(response)) {
             try {
                 JSONArray allCounty = new JSONArray(response);
@@ -75,5 +83,18 @@ public class Utility {
 
         }
         return false;
+    }
+
+    public static Weather handleWeatherResponse(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+            String weatherContent= jsonArray.getJSONObject(0).toString();
+            return  new Gson().fromJson(weatherContent,Weather.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+
     }
 }

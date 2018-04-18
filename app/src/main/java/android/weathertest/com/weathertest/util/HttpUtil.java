@@ -1,7 +1,5 @@
 package android.weathertest.com.weathertest.util;
 
-import android.view.ActionMode;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 

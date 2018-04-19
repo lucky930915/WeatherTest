@@ -18,7 +18,7 @@ import org.json.JSONObject;
  */
 
 public class Utility {
-    public static final String TAG = "ChooseAreaFragment";
+    public static final String TAG = "WeatherActivity";
 
     public static boolean handleProvinceResponse(String response) {
         Log.d(TAG, "response==: " + response);
@@ -90,7 +90,11 @@ public class Utility {
             JSONObject jsonObject = new JSONObject(response);
             JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
             String weatherContent= jsonArray.getJSONObject(0).toString();
-            return  new Gson().fromJson(weatherContent,Weather.class);
+            Log.d(TAG, "weatherContent==="+weatherContent);
+            Gson gson = new Gson();
+            Weather weather =gson.fromJson(weatherContent,Weather.class);
+            Log.d(TAG, "weather==="+weatherContent);
+            return weather;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,3 +102,5 @@ public class Utility {
 
     }
 }
+
+

@@ -34,6 +34,8 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
+
+    public static final String TAG = "WeatherActivity";
     private ScrollView weatherlayout;
     private TextView titleCity;
     private TextView titleUpdateTime;
@@ -121,6 +123,56 @@ public class WeatherActivity extends AppCompatActivity {
         }
     }
 
+public void requestWeather(final String weatherId) {
+        String weatherurl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=25439181eff74141813762ce5e45771a";
+        HttpUtil.sendOkHttpRequest(weatherurl, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        Toast.makeText(WeatherActivity.this, "获取天气失败", Toast.LENGTH_SHORT).show();
+
+                        refreshLayout.setRefreshing(false);
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+                Log.d(TAG, "run: responseText==="+responseText);
+                final Weather weather = Utility.handleWeatherResponse(responseText);
+                Log.d(TAG, "weather==="+weather);
+                runOnUiThread(new Runnable() {
+
+
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "run: weather==="+weather);
+                        if (weather != null && "ok".equals(weather.status)) {
+                            SharedPreferences.Editor editor = PreferenceManager.
+                                    getDefaultSharedPreferences(WeatherActivity.this).edit();
+                            editor.putString("weather", responseText);
+                            editor.apply();
+                            mWeatherId = weather.basic.weatherId;
+                            showWeatherInfo(weather);
+                        } else {
+
+                            Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                        }
+
+                        refreshLayout.setRefreshing(false);
+                    }
+                });
+
+
+            }
+        });
+        loadBingPic();
+    }
     private void loadBingPic() {
         String requestBingPic = "http://www.guolin.tech/api/bing_pic";
         HttpUtil.sendOkHttpRequest(requestBingPic, new Callback() {
@@ -146,58 +198,12 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    public void requestWeather(final String weatherId) {
-        String weatherurl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=25439181eff74141813762ce5e45771a";
-        HttpUtil.sendOkHttpRequest(weatherurl, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Toast.makeText(WeatherActivity.this, "获取天气失败", Toast.LENGTH_SHORT).show();
-
-                        refreshLayout.setRefreshing(false);
-                    }
-                });
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                final String responseText = response.body().toString();
-                final Weather weather = Utility.handleWeatherResponse(responseText);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (weather != null && "ok".equals(weather.status)) {
-                            SharedPreferences.Editor editor = PreferenceManager.
-                                    getDefaultSharedPreferences(WeatherActivity.this).edit();
-                            editor.putString("weather", responseText);
-                            editor.apply();
-                            mWeatherId = weather.basic.weatherId;
-                            showWeatherInfo(weather);
-
-
-                        } else {
-
-                            Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
-                        }
-
-                        refreshLayout.setRefreshing(false);
-                    }
-                });
-
-
-            }
-        });
-        loadBingPic();
-    }
+    
 
     private void showWeatherInfo(Weather weather) {
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
-        String degree = weather.now.temperature + "摄氏度";
+        String degree = weather.now.temperature + "℃";
         String weatherinfo = weather.now.more.info;
         titleCity.setText(cityName);
         titleUpdateTime.setText(updateTime);
